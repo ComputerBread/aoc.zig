@@ -5,6 +5,15 @@ const heap = std.heap;
 
 const Problem = @import("problem");
 
+fn timeit(problem: Problem, part: u8) !?i64 {
+    const curtime = std.time.microTimestamp();
+    const res = if (part == 1) try problem.part1() else try problem.part2();
+    const done = std.time.microTimestamp();
+    const us: f64 = @floatFromInt(done - curtime);
+    const ms: f64 = us / 1000.0;
+    std.debug.print("({d:.3} ms) part {d}: ", .{ ms, part });
+    return res;
+}
 pub fn main() !void {
     const stdout = io.getStdOut().writer();
 
@@ -17,13 +26,13 @@ pub fn main() !void {
         .allocator = allocator,
     };
 
-    if (try problem.part1()) |solution|
+    if (try timeit(problem, 1)) |solution|
         try stdout.print(switch (@TypeOf(solution)) {
             []const u8 => "{s}",
             else => "{any}",
         } ++ "\n", .{solution});
 
-    if (try problem.part2()) |solution|
+    if (try timeit(problem, 2)) |solution|
         try stdout.print(switch (@TypeOf(solution)) {
             []const u8 => "{s}",
             else => "{any}",
