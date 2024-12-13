@@ -1,7 +1,7 @@
-const path = "../../input/2024/day12.txt";
+const path = "../../input/2024/day13.txt";
 const file = Bun.file(path);
 
-//const text = await file.text();
+const text = await file.text();
 
 
 function parseCoordinates(text) {
@@ -81,57 +81,36 @@ Button A: X+69, Y+23
 Button B: X+27, Y+71
 Prize: X=18641, Y=10279`;
 
-const games = parseCoordinates(coordinateData);
+const games = parseCoordinates(text);
 const priceA = 3;
 const priceB = 1;
 
+console.log(Number.MAX_SAFE_INTEGER)
 let res = 0;
 // i guess init pos is 0,0
 for (const game of games) {
-  console.log(game);
-  const queue = [];
-  const m = new Map();
-  queue.push({ cost: 0, ...game.prize });
-  while (queue.length > 0) {
-    console.log("queue length: ", queue.length)
-    const curr = queue.shift();
-
-    //console.log("???? button A", game.buttonA);
-    //console.log("???? button B", game.buttonB);
-    const posAfterA = { x: curr.x - game.buttonA.x, y: curr.y - game.buttonA.y, cost: curr.cost + priceA };
-    const posAfterB = { x: curr.x - game.buttonB.x, y: curr.y - game.buttonB.y, cost: curr.cost + priceB };
-    const namePosA = `${posAfterA.x}-${posAfterA.y}`;
-    const namePosB = `${posAfterB.x}-${posAfterB.y}`;
-
-    // console.log("curr ", curr)
-    // console.log("A ", posAfterA);
-    // console.log("B ", posAfterB);
-
-    // careful if A and B move at the same speed
-    if (posAfterA.x >= 0 && posAfterA.y >= 0) {
-      let min = posAfterA.cost;
-      if (m.has(namePosA)) {
-        const v = m.get(namePosA);
-        min = Math.min(v, min);
+  const dp = matrix(game.prize.x + 1, game.prize.y + 1);
+  dp[0][0] = 0;
+  //console.log(game)
+  for (let i = 0; i <= game.prize.x; i++) {
+    for (let j = 0; j <= game.prize.y; j++) {
+      if ((i - game.buttonA.x) >= 0
+        && (j - game.buttonA.y) >= 0
+        && dp[i - game.buttonA.x][j - game.buttonA.y] != Number.MAX_SAFE_INTEGER
+      ) {
+        dp[i][j] = Math.min(dp[i][j], dp[i - game.buttonA.x][j - game.buttonA.y] + priceA);
       }
-      m.set(namePosA, min);
-      queue.push(posAfterA);
-    } else {
-      console.log("out")
-    }
-
-    if (posAfterB.x >= 0 && posAfterB.y >= 0) {
-      let min = posAfterB.cost;
-      if (m.has(namePosB)) {
-        const v = m.get(namePosB);
-        min = Math.min(v, min);
+      if ((i - game.buttonB.x >= 0)
+        && (j - game.buttonB.y >= 0)
+        && dp[i - game.buttonB.x][j - game.buttonB.y] != Number.MAX_SAFE_INTEGER) {
+        dp[i][j] = Math.min(dp[i][j], dp[i - game.buttonB.x][j - game.buttonB.y] + priceB);
       }
-      m.set(namePosB, min);
-      queue.push(posAfterB);
-    } else {
-      console.log("out")
     }
   }
-  res += m.get("0-0");
+  const resQuestionMark = dp[game.prize.x][game.prize.y];
+  if (resQuestionMark != Number.MAX_SAFE_INTEGER)
+    res += resQuestionMark;
+  console.log("res", res)
 }
-console.log(res);
+
+console.log("total res", res)
